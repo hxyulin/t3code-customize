@@ -84,7 +84,9 @@ class PlatformTests(unittest.TestCase):
         app = support.InstalledApp.inspect(bundle, 'darwin')
         self.assertEqual(app.resources, bundle / 'Contents/Resources')
         self.assertEqual(app.executable, bundle / 'Contents/MacOS/T3 Code (Nightly)')
-        self.assertEqual(support.find_app(self.root, {}, system='darwin', env={}), app)
+        # Keep discovery inside the fixture even when this Mac has T3 installed.
+        with patch.object(support, 'app_candidates', return_value=[bundle]):
+            self.assertEqual(support.find_app(self.root, {}, system='darwin', env={}), app)
         self.assertEqual(support.find_app(self.root, {'appimage': str(bundle)}, system='darwin'), app)
         self.assertIn(str(bundle / 'Contents/Resources/app.asar'), [r['path'] for r in app.fingerprint()])
         self.assertEqual(support.node_target('darwin', 'arm64'), ('darwin-arm64', '.tar.xz'))
